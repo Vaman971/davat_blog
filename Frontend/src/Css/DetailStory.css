@@ -246,6 +246,29 @@ li.story-readtime {
     flex-direction: column;
     text-align: center;
 }
+.reportButton{
+    position: relative;
+    /* bottom: 6px
+px
+; */
+    margin: 25px 35px;
+    border-radius: 10%;
+}
+.reported-message{
+    color: rgb(231, 50, 50);
+}
+
+.reportButton button{
+    border-radius: 10%;
+    padding: 5px 25px;
+    border-style: none;
+    cursor: pointer;
+    transition: background 500ms ease-in-out;
+}   
+
+.reportButton button:hover{
+    background: rgb(242, 118, 118);
+}
 
 .delete_or_edit_story p {
     color: black;

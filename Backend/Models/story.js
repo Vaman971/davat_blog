@@ -39,23 +39,31 @@ const StorySchema = new mongoose.Schema({
         default: 0
     },
     comments: [{
-            type: mongoose.Schema.ObjectId,
-            ref: "Comment"
+        type: mongoose.Schema.ObjectId,
+        ref: "Comment"
     }],
     commentCount: {
         type: Number,
         default: 0
-    }
-
+    },
+    reports: [
+        {
+            type: mongoose.Schema.ObjectId,
+            ref: "User",
+        },
+    ],
+    reportCount: {
+        type: Number,
+        default: 0,
+    },
 
 }, { timestamps: true })
 
-StorySchema.pre("save",  function (next) {
+StorySchema.pre("save", function (next) {
 
     if (!this.isModified("title")) {
         next();
     }
-
 
     this.slug = this.makeSlug()
 
@@ -65,10 +73,10 @@ StorySchema.pre("save",  function (next) {
 
 StorySchema.pre("remove", async function (next) {
 
-    const story= await Story.findById(this._id)
+    const story = await Story.findById(this._id)
 
     await Comment.deleteMany({
-        story : story 
+        story: story
     })
 
 })
@@ -82,8 +90,15 @@ StorySchema.methods.makeSlug = function () {
         locale: 'tr',
         trim: true
     })
-
 }
+
+StorySchema.methods.reportStory = async function (user) {
+    if (!this.reports.includes(user._id)) {
+      this.reports.push(user._id);
+      this.reportCount = this.reports.length;
+      await this.save();
+    }
+  };
 
 const Story = mongoose.model("Story", StorySchema)
 

@@ -54,6 +54,9 @@ const App = () => {
                                     <Route exact path='/story/:slug/like' element={<PrivateRoute />}>
                                           <Route exact path='/story/:slug/like' element={<DetailStory />} />
                                     </Route>
+                                    <Route exact path='/story/:slug/report' element={<PrivateRoute />}>
+                                          <Route exact path='/story/:slug/report' element={<DetailStory />} />
+                                    </Route>
 
                                     <Route exact path='/story/:slug/edit' element={<PrivateRoute />}>
                                           <Route exact path='/story/:slug/edit' element={<EditStory />} />

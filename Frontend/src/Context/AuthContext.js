@@ -24,11 +24,10 @@ const AuthContextProvider = props => {
       catch (error) {
 
         localStorage.removeItem("authToken");
-
         setActiveUser({})
       }
     };
-    controlAuth()
+    controlAuth();
 
   }, [])
 

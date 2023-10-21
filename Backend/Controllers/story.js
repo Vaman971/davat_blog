@@ -46,7 +46,7 @@ const getAllStories = asyncErrorWrapper( async (req,res,next) =>{
 
     const paginationResult =await paginateHelper(Story , query ,req)
 
-    query = paginationResult.query  ;
+    query = paginationResult.query;
 
     query = query.sort("-likeCount -commentCount -createdAt")
 
@@ -87,7 +87,7 @@ const detailStory =asyncErrorWrapper(async(req,res,next)=>{
 
 const likeStory =asyncErrorWrapper(async(req,res,next)=>{
 
-    const {activeUser} =req.body 
+    const {activeUser} =req.body ;
     const {slug} = req.params ;
 
     const story = await Story.findOne({
@@ -96,7 +96,7 @@ const likeStory =asyncErrorWrapper(async(req,res,next)=>{
    
     const storyLikeUserIds = story.likes.map(json => json._id.toString())
    
-    if (! storyLikeUserIds.includes(activeUser._id)){
+    if (!storyLikeUserIds.includes(activeUser._id)){
 
         story.likes.push(activeUser)
         story.likeCount = story.likes.length
@@ -118,9 +118,44 @@ const likeStory =asyncErrorWrapper(async(req,res,next)=>{
     })
 
 })
+const reportStory = asyncErrorWrapper(async (req, res, next) => {
+    const { slug } = req.params;
+    const { activeUser } = req.body;
+  
+    try {
+      const story = await Story.findOne({ slug });
+  
+      if (!story) {
+        return next({
+          message: "Story not found",
+          statusCode: 404,
+        });
+      }
+  
+      if (story.reports.includes(activeUser._id)) {
+        // The user has already reported this story
+        return res.status(400).json({
+          success: false,
+          message: "You have already reported this story.",
+        });
+      }
+  
+      story.reports.push(activeUser._id);
+      story.reportCount = story.reports.length;
+      await story.save();
+  
+      return res.status(200).json({
+        success: true,
+        message: "Story reported successfully.",
+      });
+    } catch (error) {
+      return next(error);
+    }
+  });
+
 
 const editStoryPage  =asyncErrorWrapper(async(req,res,next)=>{
-    const {slug } = req.params ; 
+    const { slug } = req.params ; 
    
     const story = await Story.findOne({
         slug: slug 
@@ -131,7 +166,6 @@ const editStoryPage  =asyncErrorWrapper(async(req,res,next)=>{
             success:true,
             data : story
     })
-
 })
 
 
@@ -184,6 +218,52 @@ const deleteStory  =asyncErrorWrapper(async(req,res,next)=>{
 
 })
 
+const deleteStoryIfReportExceeds30 = asyncErrorWrapper(async (req, res, next) => {
+    const { slug } = req.params;
+    const { activeUser } = req.body;
+  
+    try {
+      const story = await Story.findOne({ slug });
+  
+      if (!story) {
+        return next({
+          message: "Story not found",
+          statusCode: 404,
+        });
+      }
+  
+      // Check if the report count exceeds 30
+      if (story.reportCount > 30) {
+        // Verify if the user has the necessary privileges to delete
+        // For example, only admins can delete in this case
+        if (activeUser.role !== "admin") {
+          return res.status(403).json({
+            success: false,
+            message: "Insufficient privileges to delete this story.",
+          });
+        }
+  
+        // Delete the story and any associated data
+        // Implement a function to delete associated data, like comments, if needed
+        await story.remove();
+  
+        return res.status(200).json({
+          success: true,
+          message: "Story deleted successfully due to excessive reports.",
+        });
+      }
+  
+      return res.status(400).json({
+        success: false,
+        message: "Report count does not exceed 30. Story not deleted.",
+      });
+    } catch (error) {
+      return next(error);
+    }
+  });
+  
+
+
 
 module.exports ={
     addStory,
@@ -192,5 +272,7 @@ module.exports ={
     likeStory,
     editStoryPage,
     editStory ,
-    deleteStory
+    reportStory,
+    deleteStory,
+    deleteStoryIfReportExceeds30
 }

@@ -32,7 +32,7 @@ const checkUserAndStoryExist = asyncErrorWrapper(async(req, res, next) => {
         return next(new CustomError("There is no story with that slug associated with User ",400))
     }
 
-    next() ; 
+    next(); 
 
 })
 
